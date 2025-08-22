@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เกม 24: พร้อมคะแนนและโลโก้ทีม</title>
+    <!-- Tailwind CSS สำหรับการจัดวางและตกแต่งหน้าเว็บให้สวยงาม -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+            color: #2c3e50;
+        }
+        .screen {
+            display: none;
+        }
+        .container-24 {
+            background-color: white;
+            padding: 2.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            max-width: 90%;
+            width: 800px;
+            text-align: center;
+        }
+        h1 {
+            color: #2c3e50;
+        }
+        .number-box {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            width: 100px;
+            height: 100px;
+            background-color: #3498db;
+            color: white;
+            font-size: 4em;
+            font-weight: bold;
+            border-radius: 0.75rem;
+            margin: 0.75rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .message-display {
+            min-height: 2em;
+        }
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+            margin: 1rem auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .score-list-item {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            background-color: #f8f9fa;
+            border-radius: 0.5rem;
+            margin-bottom: 0.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            text-align: left;
+            transition: background-color 0.2s ease-in-out, opacity 0.2s ease-in-out;
+        }
+        .score-list-item.can-score:hover {
+            background-color: #e2e8f0;
+            cursor: pointer;
+        }
+        .score-list-item.scored {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .team-logo {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 12px;
+        }
+        .team-info {
+            flex: 1;
+            display: flex;
+            align-items: center;
+        }
+        .team-name {
+            font-weight: bold;
+        }
+        .score {
+            font-weight: bold;
+            color: #1a73e8;
+            margin-left: auto;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen">
+
+    <!-- หน้าจอเริ่มต้น -->
+    <div id="start-screen" class="screen flex items-center justify-center h-full w-full">
+        <div class="container-24">
+            <h1 class="text-3xl font-bold mb-4">ตั้งค่าการเล่น</h1>
+            <p class="text-lg mb-4">เลือกว่าจะเล่นกี่แต้ม (1 แต้ม = 1 รอบ)</p>
+            <input type="number" id="rounds-input" class="w-24 text-center p-2 rounded-md border-2 border-gray-300 focus:outline-none focus:border-blue-500" value="5" min="1">
+            <button onclick="startGame()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-all transform hover:-translate-y-1 mt-4">
+                เริ่มเกม
+            </button>
+        </div>
+    </div>
+
+    <!-- หน้าจอเกม -->
+    <div id="game-screen" class="screen">
+        <div class="container-24">
+            <h1 class="text-3xl font-bold mb-4">เกม 24 (The 24 Game)</h1>
+            <p id="round-info" class="text-xl mb-4 text-gray-700"></p>
+            
+            <!-- ส่วนเล่นเกม: ย้ายขึ้นมาด้านบน -->
+            <div id="game-area" class="mt-8">
+                <div id="numbers-display" class="flex justify-center items-center my-8"></div>
+                <div id="message-display" class="text-lg text-gray-600 message-display"></div>
+                <div class="flex justify-center space-x-4 mt-8">
+                    <button onclick="generateNumbers()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition-all transform hover:-translate-y-1">
+                        สุ่มเลขใหม่
+                    </button>
+                    <button onclick="getSolution()" id="solve-button" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-all transform hover:-translate-y-1">
+                        ✨ หาคำตอบ
+                    </button>
+                    <button onclick="undoLastScore()" id="undo-button" class="bg-gray-400 hover:bg-gray-500 text-white font-bold py-3 px-6 rounded-lg transition-all transform hover:-translate-y-1">
+                        ย้อนกลับ
+                    </button>
+                </div>
+                <div id="solution-display" class="text-2xl font-semibold mt-6 text-green-600 message-display"></div>
+            </div>
+            
+            <!-- ส่วนแสดงคะแนนเป็นตัวเลข: ย้ายลงมาด้านล่าง -->
+            <div id="scoreboard" class="flex flex-col items-center my-4 pt-4">
+                <p class="text-lg font-bold mb-2">คะแนนทีม</p>
+                <div id="score-list" class="w-full max-w-sm">
+                    <!-- รายชื่อทีมและคะแนนจะถูกสร้างด้วย JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- หน้าจอจบเกม -->
+    <div id="end-screen" class="screen flex items-center justify-center h-full w-full">
+        <div class="container-24">
+            <h1 class="text-3xl font-bold mb-4">จบเกม!</h1>
+            <div id="winner-display" class="text-2xl font-bold mb-6 text-indigo-700"></div>
+            <img id="winner-logo" src="" alt="Winner's Logo" class="w-32 h-32 mx-auto my-4 rounded-full shadow-lg">
+            <div id="final-scores" class="text-lg mb-6"></div>
+            <button onclick="restartGame()" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-lg transition-all transform hover:-translate-y-1">
+                เล่นอีกครั้ง
+            </button>
+        </div>
+    </div>
+
+    <!-- สคริปต์ JavaScript สำหรับการทำงานของเกมและ Gemini API -->
+    <script>
+        // API key สำหรับ Gemini API (จะถูกเติมอัตโนมัติ)
+        const apiKey = "";
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
+        // โลโก้ทีมที่ใช้จาก Google Drive (แก้ไขจาก Data URL เป็นลิงก์ตรง)
+        const teamLogos = {
+            'The Sloths': 'https://drive.google.com/uc?id=1EtHkyC11V72-ZcezceG_wGns6dLFaAe_',
+            'ไก่ ป๊อก กะ ต๊อก': 'https://drive.google.com/uc?id=1hrn2fL86eCYsF1m9WZIghBHhz-6Kpw0Z',
+            '(นก)กระจอก บอกเจ๋ง': 'https://drive.google.com/uc?id=1nfZ7ZxuekL_m16yxXUUr4CjFP4zf_ZTp',
+            'หนอน หน๊อนนน หนอนนนนนนนน': 'https://drive.google.com/uc?id=1a3TExzdMpvtSK5RLojw_B547db2qGagX',
+            'แมวนิลมังกร': 'https://drive.google.com/uc?id=1wHXFMk81Ivg9ksBpq3WXbTiOXTW1rbdG',
+        };
+
+        // ตัวแปรสำหรับสถานะของเกม
+        let totalRounds = 0;
+        let currentRound = 0;
+        let canScore = true;
+        let lastScoredTeamName = null;
+        const teams = [
+            { name: 'The Sloths', score: 0 },
+            { name: 'ไก่ ป๊อก กะ ต๊อก', score: 0 },
+            { name: '(นก)กระจอก บอกเจ๋ง', score: 0 },
+            { name: 'หนอน หน๊อนนน หนอนนนนนนนน', score: 0 },
+            { name: 'แมวนิลมังกร', score: 0 },
+        ];
+        
+        // ฟังก์ชันเปลี่ยนหน้าจอ
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.style.display = 'none';
+            });
+            document.getElementById(screenId).style.display = 'flex';
+        }
+
+        // ฟังก์ชันเริ่มเกม
+        function startGame() {
+            totalRounds = parseInt(document.getElementById('rounds-input').value, 10);
+            if (isNaN(totalRounds) || totalRounds < 1) {
+                showMessageBox('กรุณาใส่จำนวนรอบที่ถูกต้อง (อย่างน้อย 1 รอบ)');
+                return;
+            }
+            currentRound = 0;
+            teams.forEach(team => team.score = 0);
+            showScreen('game-screen');
+            updateScoreboard();
+            // ไม่ต้องสุ่มเลขทันที ให้ผู้ใช้กดปุ่ม 'สุ่มเลขใหม่' ครั้งแรกเอง
+            // generateNumbers();
+            document.getElementById('round-info').textContent = `รอบที่ 0 / ${totalRounds}`; // แก้ไขให้แสดงรอบที่ 0 ก่อนเริ่มเกม
+        }
+
+        // ฟังก์ชันรีสตาร์ทเกม
+        function restartGame() {
+            showScreen('start-screen');
+        }
+
+        // ฟังก์ชันแสดงและอัปเดตคะแนน
+        function updateScoreboard() {
+            const scoreList = document.getElementById('score-list');
+            scoreList.innerHTML = '';
+            
+            teams.forEach((team) => {
+                const teamElement = document.createElement('div');
+                const itemClass = canScore ? 'can-score' : 'scored';
+                teamElement.className = `score-list-item ${itemClass}`;
+                
+                const onclickAttribute = canScore ? `onclick="addPointByName('${team.name}')"` : '';
+                
+                teamElement.innerHTML = `
+                    <div class="team-info" ${onclickAttribute}>
+                        <img src="${teamLogos[team.name]}" class="team-logo" alt="${team.name} Logo">
+                        <span class="team-name">${team.name}</span>
+                    </div>
+                    <span class="score">${team.score}</span>
+                `;
+                scoreList.appendChild(teamElement);
+            });
+            
+            document.getElementById('round-info').textContent = `รอบที่ ${currentRound} / ${totalRounds}`;
+            document.getElementById('undo-button').style.display = canScore ? 'none' : 'inline-block';
+        }
+
+        // ฟังก์ชันเพิ่มคะแนน
+        function addPointByName(teamName) {
+            if (!canScore) {
+                return;
+            }
+            
+            const teamIndex = teams.findIndex(team => team.name === teamName);
+            if (teamIndex !== -1) {
+                teams[teamIndex].score++;
+                lastScoredTeamName = teamName;
+                canScore = false;
+                updateScoreboard();
+            }
+        }
+        
+        // ฟังก์ชันย้อนกลับคะแนน
+        function undoLastScore() {
+            if (lastScoredTeamName) {
+                const teamIndex = teams.findIndex(team => team.name === lastScoredTeamName);
+                if (teamIndex !== -1) {
+                    teams[teamIndex].score--;
+                    canScore = true;
+                    lastScoredTeamName = null;
+                    updateScoreboard();
+                }
+            }
+        }
+        
+        // ฟังก์ชันจบเกมและประกาศผู้ชนะ
+        function endGame() {
+            showScreen('end-screen');
+            const sortedTeams = [...teams].sort((a, b) => b.score - a.score);
+            const winner = sortedTeams[0];
+            
+            let winnerText = `ทีมชนะคือ: ${winner.name} ด้วยคะแนน ${winner.score} แต้ม!`;
+            let winnerLogoSrc = teamLogos[winner.name];
+            
+            if (sortedTeams.length > 1 && sortedTeams[0].score === sortedTeams[1].score) {
+                 winnerText = `เสมอกัน! ${winner.name} และ ${sortedTeams[1].name} ได้คะแนนสูงสุด`;
+                 winnerLogoSrc = ''; // ไม่มีโลโก้ถ้าเสมอ
+            }
+            
+            document.getElementById('winner-display').textContent = winnerText;
+            document.getElementById('winner-logo').src = winnerLogoSrc;
+            
+            const finalScoresHtml = sortedTeams.map((team, index) => `
+                <div class="flex justify-between items-center mb-1">
+                    <span class="font-semibold">${index + 1}. ${team.name}:</span>
+                    <span>${team.score} แต้ม</span>
+                </div>
+            `).join('');
+            document.getElementById('final-scores').innerHTML = finalScoresHtml;
+        }
+
+        // ฟังก์ชันสุ่มเลขและแสดงผล
+        function generateNumbers() {
+            currentRound++; // ย้ายการนับรอบมาที่นี่
+            if (currentRound > totalRounds) {
+                endGame();
+                return;
+            }
+            
+            let numbers = [
+                Math.floor(Math.random() * 9) + 1,
+                Math.floor(Math.random() * 9) + 1,
+                Math.floor(Math.random() * 9) + 1,
+                Math.floor(Math.random() * 9) + 1
+            ];
+            
+            const numbersDisplay = document.getElementById('numbers-display');
+            numbersDisplay.innerHTML = numbers.map(num => `<div class="number-box">${num}</div>`).join('');
+            
+            const messageDisplay = document.getElementById('message-display');
+            messageDisplay.textContent = 'ลองหาคำตอบกัน!';
+            
+            const solutionDisplay = document.getElementById('solution-display');
+            solutionDisplay.textContent = '';
+            
+            lastScoredTeamName = null;
+            canScore = true;
+            updateScoreboard();
+            
+            document.getElementById('solve-button').disabled = false;
+        }
+        
+        // ฟังก์ชันเรียกใช้ Gemini API เพื่อหาคำตอบ
+        async function getSolution() {
+            const numbers = Array.from(document.querySelectorAll('.number-box')).map(el => el.textContent);
+            if (numbers.length === 0) {
+                document.getElementById('solution-display').textContent = 'กรุณาสุ่มเลขก่อน';
+                return;
+            }
+
+            const solutionDisplay = document.getElementById('solution-display');
+            solutionDisplay.innerHTML = `<div class="loading-spinner"></div>`;
+
+            const prompt = `Given the numbers ${numbers.join(', ')}, provide a mathematical expression using addition, subtraction, multiplication, and division to get a result of 24. Use each number exactly once. Do not use any other numbers. The expression must be correct. Only provide the expression as a single string, for example: (8 * 3) + 6 - 6.`;
+
+            const payload = {
+                contents: [{
+                    parts: [{
+                        text: prompt
+                    }]
+                }]
+            };
+
+            let success = false;
+            for (let i = 0; i < 3 && !success; i++) {
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`API response was not ok, status: ${response.status}`);
+                    }
+                    
+                    const result = await response.json();
+                    const text = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+                    
+                    if (text && text.includes('=')) {
+                        solutionDisplay.textContent = text;
+                    } else if (text) {
+                        solutionDisplay.textContent = `${text} = 24`;
+                    } else {
+                        solutionDisplay.textContent = 'ไม่สามารถหาคำตอบได้';
+                    }
+                    success = true;
+                } catch (error) {
+                    console.error('Error fetching solution:', error);
+                    await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000));
+                }
+            }
+
+            if (!success) {
+                solutionDisplay.textContent = 'เกิดข้อผิดพลาดในการเชื่อมต่อ ลองใหม่อีกครั้ง';
+            }
+        }
+
+        // ฟังก์ชันสำหรับแสดงกล่องข้อความแทน alert()
+        function showMessageBox(message) {
+            // โค้ดสำหรับแสดงกล่องข้อความแบบกำหนดเอง (แทน alert)
+            // สามารถสร้าง modal หรือ popup เล็กๆ เพื่อแสดงข้อความได้
+            console.log(message); // ตอนนี้จะแสดงใน console แทน
+            const messageDiv = document.createElement('div');
+            messageDiv.textContent = message;
+            messageDiv.className = 'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-lg shadow-xl border-2 border-red-500 z-50';
+            document.body.appendChild(messageDiv);
+            setTimeout(() => {
+                document.body.removeChild(messageDiv);
+            }, 3000);
+        }
+
+        // เริ่มต้นการทำงานเมื่อหน้าเว็บโหลดเสร็จ
+        window.onload = function() {
+            showScreen('start-screen');
+        };
+    </script>
+</body>
+</html>
