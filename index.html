@@ -21,19 +21,18 @@
         .screen {
             display: none;
             width: 100%;
+            height: 100%;
         }
         .container-24 {
             background-color: #1f2937;
-            padding: 2rem;
+            padding: 1.5rem; /* ลด padding เพื่อให้กระชับขึ้น */
             border-radius: 1.5rem;
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5); /* Shadow ที่โดดเด่นขึ้น */
             border: 1px solid rgba(255, 255, 255, 0.1);
             max-width: 95vw;
             width: 100%;
-            max-width: 800px;
+            max-width: 1000px; /* เพิ่มความกว้างสูงสุดเพื่อรองรับ 2 คอลัมน์ */
             text-align: center;
-            /* ปรับขนาดเพื่อให้ดูดีบนจอ 16:9 */
-            aspect-ratio: 16 / 9;
             min-height: 500px; /* กำหนดความสูงขั้นต่ำ */
             display: flex;
             flex-direction: column;
@@ -42,7 +41,7 @@
         /* ปรับขนาดตัวอักษรและ padding บนหน้าจอขนาดใหญ่ */
         @media (min-width: 1024px) {
             .container-24 {
-                padding: 3.5rem;
+                padding: 2.5rem; /* ลด padding เพื่อให้กระชับขึ้น */
                 max-width: 1200px;
             }
         }
@@ -54,17 +53,17 @@
             display: inline-flex;
             justify-content: center;
             align-items: center;
-            width: 15vw;
-            height: 15vw;
-            max-width: 80px;
-            max-height: 80px;
+            width: 14vw; /* ลดขนาดกล่องตัวเลข */
+            height: 14vw; /* ลดขนาดกล่องตัวเลข */
+            max-width: 70px; /* ลดขนาดสูงสุด */
+            max-height: 70px; /* ลดขนาดสูงสุด */
             background: linear-gradient(45deg, #3498db, #55acee);
             color: white;
-            font-size: 5vw;
-            max-font-size: 2.5em;
+            font-size: 4vw; /* ลดขนาดตัวอักษร */
+            max-font-size: 2.2em; /* ลดขนาดสูงสุด */
             font-weight: bold;
             border-radius: 1rem;
-            margin: 0.5rem;
+            margin: 0.4rem; /* ลด margin เพื่อให้ชิดกัน */
             box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
             transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4);
@@ -76,10 +75,10 @@
         /* ปรับขนาดกล่องตัวเลขบนหน้าจอขนาดใหญ่ */
         @media (min-width: 640px) {
             .number-box {
-                width: 100px;
-                height: 100px;
-                font-size: 4em;
-                margin: 0.75rem;
+                width: 80px; /* ลดขนาด */
+                height: 80px; /* ลดขนาด */
+                font-size: 3.5em; /* ลดขนาดตัวอักษร */
+                margin: 0.5rem; /* ลด margin */
             }
         }
         .message-display {
@@ -93,7 +92,7 @@
             width: 24px;
             height: 24px;
             animation: spin 1s linear infinite;
-            margin: 1rem auto;
+            margin: 0.5rem auto; /* ลด margin */
         }
         @keyframes spin {
             0% { transform: rotate(0deg); }
@@ -103,10 +102,10 @@
             display: flex;
             justify-content: flex-start;
             align-items: center;
-            padding: 0.75rem 1.25rem;
+            padding: 0.6rem 1rem; /* ลด padding */
             background-color: #2d3748; /* สีเข้มขึ้น */
             border-radius: 0.75rem;
-            margin-bottom: 0.75rem;
+            margin-bottom: 0.5rem; /* ลด margin */
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
             text-align: left;
             transition: background-color 0.2s ease-in-out, opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
@@ -121,11 +120,11 @@
             cursor: not-allowed;
         }
         .team-logo {
-            width: 40px;
-            height: 40px;
+            width: 35px; /* ลดขนาดโลโก้ */
+            height: 35px; /* ลดขนาดโลโก้ */
             border-radius: 50%;
             object-fit: cover;
-            margin-right: 1rem;
+            margin-right: 0.75rem; /* ลด margin */
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
         .team-info {
@@ -136,12 +135,13 @@
         .team-name {
             font-weight: bold;
             color: #cbd5e0;
+            font-size: 0.9rem; /* ลดขนาด font */
         }
         .score {
             font-weight: bold;
             color: #48bb78; /* สีเขียวที่ดูดีขึ้น */
             margin-left: auto;
-            font-size: 1.5rem;
+            font-size: 1.25rem; /* ลดขนาด font */
         }
     </style>
 </head>
@@ -149,45 +149,56 @@
 
     <!-- หน้าจอเริ่มต้น -->
     <div id="start-screen" class="screen flex items-center justify-center h-full w-full">
-        <div class="container-24">
-            <h1 class="text-4xl font-bold mb-6">ตั้งค่าการเล่น</h1>
-            <p class="text-xl mb-6 text-gray-400">เลือกว่าจะเล่นกี่แต้ม (1 แต้ม = 1 รอบ)</p>
-            <input type="number" id="rounds-input" class="w-32 text-center p-3 rounded-md bg-gray-700 text-white border-2 border-gray-600 focus:outline-none focus:border-blue-500" value="5" min="1">
-            <button onclick="startGame()" class="bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white font-bold py-3 px-8 rounded-lg transition-all transform hover:-translate-y-1 mt-6 shadow-lg">
-                เริ่มเกม
-            </button>
+        <div class="container-24 flex flex-col items-center justify-center">
+            <h1 class="text-3xl font-bold mb-4">ตั้งค่าการเล่น</h1>
+            <p class="text-lg mb-4 text-gray-400">เลือกว่าจะเล่นกี่แต้ม (1 แต้ม = 1 รอบ)</p>
+            <!-- จัดให้อยู่ในบรรทัดเดียวกันตามคำขอ -->
+            <div class="flex items-center justify-center space-x-3">
+                <input type="number" id="rounds-input" class="w-24 text-center p-2 rounded-md bg-gray-700 text-white border-2 border-gray-600 focus:outline-none focus:border-blue-500" value="5" min="1">
+                <button onclick="startGame()" class="bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white font-bold py-2 px-6 rounded-lg transition-all transform hover:-translate-y-1 shadow-lg">
+                    เริ่มเกม
+                </button>
+            </div>
         </div>
     </div>
 
     <!-- หน้าจอเกม -->
-    <div id="game-screen" class="screen">
-        <div class="container-24">
-            <h1 class="text-4xl font-bold mb-4">เกม 24 (The 24 Game)</h1>
-            <p id="round-info" class="text-xl mb-4 text-gray-400"></p>
+    <div id="game-screen" class="screen flex flex-col items-center justify-center">
+        <!-- Main container for the game, centered on the screen -->
+        <div class="container-24 flex flex-col items-center">
+            <h1 class="text-3xl font-bold mb-2">เกม 24 (The 24 Game)</h1>
+            <p id="round-info" class="text-lg mb-2 text-gray-400"></p>
             
-            <!-- ส่วนเล่นเกม: ย้ายขึ้นมาด้านบน -->
-            <div id="game-area" class="mt-8">
-                <div id="numbers-display" class="flex justify-center items-center my-8"></div>
-                <div id="message-display" class="text-lg text-gray-400 message-display"></div>
-                <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4 mt-8">
-                    <button onclick="generateNumbers()" class="bg-gradient-to-r from-green-500 to-green-700 hover:from-green-600 hover:to-green-800 text-white font-bold py-3 px-6 rounded-lg transition-all transform hover:-translate-y-1 shadow-lg">
-                        สุ่มเลขใหม่
-                    </button>
-                    <button onclick="getSolution()" id="solve-button" disabled class="bg-gradient-to-r from-purple-500 to-purple-700 hover:from-purple-600 hover:to-purple-800 text-white font-bold py-3 px-6 rounded-lg transition-all transform hover:-translate-y-1 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
-                        ✨ หาคำตอบ
-                    </button>
-                    <button onclick="undoLastScore()" id="undo-button" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-lg transition-all transform hover:-translate-y-1 shadow-lg">
-                        ย้อนกลับ
-                    </button>
+            <!-- ส่วนเล่นเกม: ปรับเป็น flexbox เพื่อจัดแบ่งซ้าย-ขวา -->
+            <div class="flex flex-col md:flex-row justify-between w-full space-y-8 md:space-y-0 md:space-x-8 mt-4">
+
+                <!-- คอลัมน์ซ้าย: ตัวเลขและปุ่มกด -->
+                <div class="w-full md:w-1/2 flex flex-col items-center">
+                    <div id="numbers-display" class="flex justify-center items-center my-4"></div>
+                    <div id="message-display" class="text-base text-gray-400 message-display"></div>
+                    <!-- ปุ่มต่าง ๆ จัดให้อยู่ตรงกลางและมีระยะห่างที่เหมาะสม -->
+                    <div class="flex flex-col sm:flex-row justify-center space-y-3 sm:space-y-0 sm:space-x-3 mt-4">
+                        <button onclick="generateNumbers()" class="bg-gradient-to-r from-green-500 to-green-700 hover:from-green-600 hover:to-green-800 text-white font-bold py-2 px-5 rounded-lg transition-all transform hover:-translate-y-1 shadow-lg">
+                            สุ่มเลขใหม่
+                        </button>
+                        <button onclick="getSolution()" id="solve-button" disabled class="bg-gradient-to-r from-purple-500 to-purple-700 hover:from-purple-600 hover:to-purple-800 text-white font-bold py-2 px-5 rounded-lg transition-all transform hover:-translate-y-1 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
+                            ✨ หาคำตอบ
+                        </button>
+                        <button onclick="undoLastScore()" id="undo-button" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-5 rounded-lg transition-all transform hover:-translate-y-1 shadow-lg">
+                            ย้อนกลับ
+                        </button>
+                    </div>
+                    <div id="solution-display" class="text-2xl font-semibold mt-4 text-emerald-400 message-display"></div>
                 </div>
-                <div id="solution-display" class="text-3xl font-semibold mt-8 text-emerald-400 message-display"></div>
-            </div>
-            
-            <!-- ส่วนแสดงคะแนนเป็นตัวเลข: ย้ายลงมาด้านล่าง -->
-            <div id="scoreboard" class="flex flex-col items-center my-8 pt-4">
-                <p class="text-lg font-bold mb-4 text-gray-300">คะแนนทีม</p>
-                <div id="score-list" class="w-full max-w-sm">
-                    <!-- รายชื่อทีมและคะแนนจะถูกสร้างด้วย JavaScript -->
+
+                <!-- คอลัมน์ขวา: ตารางคะแนน -->
+                <div class="w-full md:w-1/2 flex flex-col items-center mt-8 md:mt-0">
+                    <div id="scoreboard" class="flex flex-col items-center w-full">
+                        <p class="text-base font-bold mb-2 text-gray-300">คะแนนทีม</p>
+                        <div id="score-list" class="w-full max-w-sm">
+                            <!-- รายชื่อทีมและคะแนนจะถูกสร้างด้วย JavaScript -->
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -195,12 +206,12 @@
 
     <!-- หน้าจอจบเกม -->
     <div id="end-screen" class="screen flex items-center justify-center h-full w-full">
-        <div class="container-24">
-            <h1 class="text-4xl font-bold mb-6">จบเกม!</h1>
-            <div id="winner-display" class="text-3xl font-bold mb-6 text-yellow-400"></div>
-            <img id="winner-logo" src="" alt="Winner's Logo" class="w-36 h-36 mx-auto my-4 rounded-full shadow-lg border-4 border-yellow-500">
-            <div id="final-scores" class="text-lg mb-6 text-gray-300"></div>
-            <button onclick="restartGame()" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-lg transition-all transform hover:-translate-y-1 shadow-lg">
+        <div class="container-24 flex flex-col items-center justify-center">
+            <h1 class="text-3xl font-bold mb-4">จบเกม!</h1>
+            <div id="winner-display" class="text-2xl font-bold mb-4 text-yellow-400"></div>
+            <img id="winner-logo" src="" alt="Winner's Logo" class="w-32 h-32 mx-auto my-3 rounded-full shadow-lg border-4 border-yellow-500">
+            <div id="final-scores" class="text-base mb-4 text-gray-300"></div>
+            <button onclick="restartGame()" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-5 rounded-lg transition-all transform hover:-translate-y-1 shadow-lg">
                 เล่นอีกครั้ง
             </button>
         </div>
