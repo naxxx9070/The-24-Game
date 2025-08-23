@@ -21,7 +21,7 @@
             border-radius: 1rem;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
             width: 100%;
-            max-width: 900px; /* จำกัดความกว้างสูงสุดสำหรับ Desktop */
+            max-width: 1200px; /* จำกัดความกว้างสูงสุดสำหรับ Desktop */
             text-align: center;
         }
         /* ปรับ padding สำหรับหน้าจอขนาดเล็ก */
@@ -130,13 +130,12 @@
     </div>
 
     <!-- หน้าจอเกม -->
-    <div id="game-screen" class="screen">
-        <div class="container-24">
-            <h1 class="text-3xl font-bold mb-4">เกม 24 (The 24 Game)</h1>
-            <p id="round-info" class="text-xl mb-4 text-gray-700"></p>
-            
-            <!-- ส่วนเล่นเกม: ย้ายขึ้นมาด้านบน -->
-            <div id="game-area" class="mt-8">
+    <div id="game-screen" class="screen w-full">
+        <div class="container-24 flex flex-col md:flex-row md:space-x-8">
+            <!-- ส่วนเล่นเกมหลัก -->
+            <div id="game-area" class="w-full md:w-1/2 mt-8 md:mt-0">
+                <h1 class="text-3xl font-bold mb-4">เกม 24 (The 24 Game)</h1>
+                <p id="round-info" class="text-xl mb-4 text-gray-700"></p>
                 <div id="numbers-display" class="flex flex-wrap justify-center items-center my-8"></div>
                 <div id="message-display" class="text-lg text-gray-600 message-display"></div>
                 <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4 mt-8">
@@ -153,8 +152,8 @@
                 <div id="solution-display" class="text-2xl font-semibold mt-6 text-green-600 message-display"></div>
             </div>
             
-            <!-- ส่วนแสดงคะแนนเป็นตัวเลข: ย้ายลงมาด้านล่าง -->
-            <div id="scoreboard" class="flex flex-col items-center my-4 pt-4">
+            <!-- ส่วนแสดงคะแนน -->
+            <div id="scoreboard" class="w-full md:w-1/2 flex flex-col items-center mt-8 md:mt-0 pt-4 md:pt-0">
                 <p class="text-lg font-bold mb-2">คะแนนทีม</p>
                 <div id="score-list" class="w-full max-w-sm">
                     <!-- รายชื่อทีมและคะแนนจะถูกสร้างด้วย JavaScript -->
@@ -179,7 +178,9 @@
     <!-- สคริปต์ JavaScript สำหรับการทำงานของเกมและ API -->
     <script>
         // API key สำหรับ Gemini API
-        const apiKey = ""; // Canvas จะใส่ค่าให้โดยอัตโนมัติ
+        // This variable is provided by the canvas environment.
+        // If you deploy this code to a third-party server, you will need to provide your own API key.
+        const apiKey = typeof __api_key !== 'undefined' ? __api_key : '';
 
         // โลโก้ทีมที่แก้ไขแล้วเพื่อใช้งานได้จริงบนหน้าเว็บ
         const teamLogos = {
@@ -221,9 +222,9 @@
             currentRound = 0;
             teams.forEach(team => team.score = 0);
             showScreen('game-screen');
-            canScore = true; // ตั้งค่าให้สามารถกดเพิ่มคะแนนได้หลังจากเริ่มเกม
+            canScore = true;
             updateScoreboard();
-            document.getElementById('solve-button').disabled = true; // ปิดปุ่มหาคำตอบตั้งแต่เริ่มต้น
+            document.getElementById('solve-button').disabled = true;
             document.getElementById('round-info').textContent = `รอบที่ 0 / ${totalRounds}`;
         }
 
@@ -297,7 +298,7 @@
             
             if (sortedTeams.length > 1 && sortedTeams[0].score === sortedTeams[1].score) {
                  winnerText = `เสมอกัน! ${winner.name} และ ${sortedTeams[1].name} ได้คะแนนสูงสุด`;
-                 winnerLogoSrc = ''; // ไม่มีโลโก้ถ้าเสมอ
+                 winnerLogoSrc = '';
             }
             
             document.getElementById('winner-display').textContent = winnerText;
@@ -314,7 +315,7 @@
 
         // ฟังก์ชันสุ่มเลขและแสดงผล
         function generateNumbers() {
-            currentRound++; // ย้ายการนับรอบมาที่นี่
+            currentRound++;
             if (currentRound > totalRounds) {
                 endGame();
                 return;
@@ -340,7 +341,7 @@
             canScore = true;
             updateScoreboard();
             
-            document.getElementById('solve-button').disabled = false; // เปิดใช้งานปุ่ม
+            document.getElementById('solve-button').disabled = false;
         }
         
         // ฟังก์ชันเรียกใช้ Gemini API เพื่อหาคำตอบ
@@ -353,7 +354,7 @@
 
             const solutionDisplay = document.getElementById('solution-display');
             solutionDisplay.innerHTML = `<div class="loading-spinner"></div>`;
-            document.getElementById('solve-button').disabled = true; // ปิดใช้งานปุ่มขณะโหลด
+            document.getElementById('solve-button').disabled = true;
 
             const prompt = `Given the numbers ${numbers.join(', ')}, provide a mathematical expression using addition, subtraction, multiplication, and division to get a result of 24. Use each number exactly once. Do not use any other numbers. The expression must be correct. Only provide the expression as a single string, for example: (8 * 3) + 6 - 6.`;
 
@@ -363,11 +364,7 @@
                     parts: [{
                         text: prompt
                     }]
-                }],
-                generationConfig: {
-                    temperature: 0.1,
-                    max_tokens: 50
-                }
+                }]
             };
 
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
@@ -407,14 +404,12 @@
             if (!success) {
                 solutionDisplay.textContent = 'เกิดข้อผิดพลาดในการเชื่อมต่อ ลองใหม่อีกครั้ง';
             }
-            document.getElementById('solve-button').disabled = false; // เปิดใช้งานปุ่มเมื่อโหลดเสร็จ
+            document.getElementById('solve-button').disabled = false;
         }
 
         // ฟังก์ชันสำหรับแสดงกล่องข้อความแทน alert()
         function showMessageBox(message) {
-            // โค้ดสำหรับแสดงกล่องข้อความแบบกำหนดเอง (แทน alert)
-            // สามารถสร้าง modal หรือ popup เล็กๆ เพื่อแสดงข้อความได้
-            console.log(message); // ตอนนี้จะแสดงใน console แทน
+            console.log(message);
             const messageDiv = document.createElement('div');
             messageDiv.textContent = message;
             messageDiv.className = 'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-lg shadow-xl border-2 border-red-500 z-50';
