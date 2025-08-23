@@ -21,7 +21,8 @@
             border-radius: 1rem;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
             max-width: 95%; /* เพิ่มความกว้างสูงสุดสำหรับมือถือ */
-            width: 800px;
+            width: 100%; /* เปลี่ยนเป็น 100% เพื่อให้ยืดหยุ่นเต็มที่ */
+            max-width: 800px;
             text-align: center;
         }
         /* ปรับขนาดตัวอักษรและ padding บนหน้าจอขนาดใหญ่ */
@@ -143,7 +144,7 @@
                     <button onclick="generateNumbers()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition-all transform hover:-translate-y-1">
                         สุ่มเลขใหม่
                     </button>
-                    <button onclick="getSolution()" id="solve-button" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-all transform hover:-translate-y-1">
+                    <button onclick="getSolution()" id="solve-button" disabled class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-all transform hover:-translate-y-1">
                         ✨ หาคำตอบ
                     </button>
                     <button onclick="undoLastScore()" id="undo-button" class="bg-gray-400 hover:bg-gray-500 text-white font-bold py-3 px-6 rounded-lg transition-all transform hover:-translate-y-1">
@@ -223,8 +224,7 @@
             teams.forEach(team => team.score = 0);
             showScreen('game-screen');
             updateScoreboard();
-            // ไม่ต้องสุ่มเลขทันที ให้ผู้ใช้กดปุ่ม 'สุ่มเลขใหม่' ครั้งแรกเอง
-            // generateNumbers();
+            document.getElementById('solve-button').disabled = true; // ปิดปุ่มหาคำตอบตั้งแต่เริ่มต้น
             document.getElementById('round-info').textContent = `รอบที่ 0 / ${totalRounds}`; // แก้ไขให้แสดงรอบที่ 0 ก่อนเริ่มเกม
         }
 
@@ -341,7 +341,7 @@
             canScore = true;
             updateScoreboard();
             
-            document.getElementById('solve-button').disabled = false;
+            document.getElementById('solve-button').disabled = false; // เปิดใช้งานปุ่ม
         }
         
         // ฟังก์ชันเรียกใช้ Gemini API เพื่อหาคำตอบ
@@ -354,6 +354,7 @@
 
             const solutionDisplay = document.getElementById('solution-display');
             solutionDisplay.innerHTML = `<div class="loading-spinner"></div>`;
+            document.getElementById('solve-button').disabled = true; // ปิดใช้งานปุ่มขณะโหลด
 
             const prompt = `Given the numbers ${numbers.join(', ')}, provide a mathematical expression using addition, subtraction, multiplication, and division to get a result of 24. Use each number exactly once. Do not use any other numbers. The expression must be correct. Only provide the expression as a single string, for example: (8 * 3) + 6 - 6.`;
 
@@ -400,6 +401,7 @@
             if (!success) {
                 solutionDisplay.textContent = 'เกิดข้อผิดพลาดในการเชื่อมต่อ ลองใหม่อีกครั้ง';
             }
+            document.getElementById('solve-button').disabled = false; // เปิดใช้งานปุ่มเมื่อโหลดเสร็จ
         }
 
         // ฟังก์ชันสำหรับแสดงกล่องข้อความแทน alert()
