@@ -22,6 +22,7 @@
             display: none;
             width: 100%;
             height: 100%;
+            position: relative;
         }
         .container-24 {
             background-color: #1f2937;
@@ -37,6 +38,7 @@
             display: flex;
             flex-direction: column;
             justify-content: center;
+            z-index: 10;
         }
         /* ปรับขนาดตัวอักษรและ padding บนหน้าจอขนาดใหญ่ */
         @media (min-width: 1024px) {
@@ -120,9 +122,9 @@
             cursor: not-allowed;
         }
         .team-logo {
-            width: 40px; /* ลดขนาดโลโก้ */
-            height: 40px; /* ลดขนาดโลโก้ */
-            border-radius: 20%;
+            width: 35px; /* ลดขนาดโลโก้ */
+            height: 35px; /* ลดขนาดโลโก้ */
+            border-radius: 50%;
             object-fit: cover;
             margin-right: 0.75rem; /* ลด margin */
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
@@ -158,6 +160,18 @@
             display: flex;
             flex-direction: column;
             gap: 0.5rem;
+            z-index: 10;
+        }
+        /* Canvas for fireworks */
+        #fireworks-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 0;
+        }
+        /* Ensure the content is above the canvas */
+        #end-screen .container-24 {
+            position: relative;
             z-index: 10;
         }
     </style>
@@ -230,11 +244,13 @@
 
     <!-- หน้าจอจบเกม -->
     <div id="end-screen" class="screen flex items-center justify-center h-full w-full">
+        <!-- Canvas for fireworks -->
+        <canvas id="fireworks-canvas" class="absolute inset-0 z-0"></canvas>
         <div class="container-24 flex flex-col items-center justify-center">
             <h1 class="text-3xl font-bold mb-4">จบเกม!</h1>
-            <div id="winner-display" class="text-2xl font-bold mb-4 text-yellow-400"></div>
-            <img id="winner-logo" src="" alt="Winner's Logo" class="w-32 h-32 mx-auto my-3 rounded-full shadow-lg border-4 border-yellow-500">
-            <div id="final-scores" class="text-base mb-4 text-gray-300"></div>
+            <div id="winner-display" class="text-2xl font-bold mb-4 text-yellow-400 text-center"></div>
+            <div id="winner-logos" class="flex flex-wrap justify-center gap-4 my-4"></div>
+            <div id="final-scores" class="text-base mb-4 text-gray-300 w-full max-w-sm"></div>
             <button onclick="restartGame()" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-5 rounded-lg transition-all transform hover:-translate-y-1 shadow-lg">
                 เล่นอีกครั้ง
             </button>
@@ -252,8 +268,8 @@
             'The Sloths': 'https://raw.githubusercontent.com/naxxx9070/The-24-Game/main/slot.png',
             'ไก่ ป๊อก กะ ต๊อก': 'https://raw.githubusercontent.com/naxxx9070/The-24-Game/main/%E0%B9%84%E0%B8%81%E0%B9%88.jpg',
             '(นก)กระจอก บอกเจ๋ง': 'https://raw.githubusercontent.com/naxxx9070/The-24-Game/main/%E0%B8%99%E0%B8%81.jpg',
-            'หนอน หน๊อนนน หนอนนนนนนนน': 'https://raw.githubusercontent.com/naxxx9070/The-24-Game/refs/heads/main/%E0%B8%AB%E0%B8%99%E0%B8%AD%E0%B8%99%E0%B8%99%E0%B8%99%20%E0%B8%AB%E0%B8%99%E0%B9%8A%E0%B8%AD%E0%B8%99%E0%B8%99%E0%B8%99%E0%B8%99%E0%B8%99%E0%B8%99%20%E0%B8%AB%E0%B8%99%E0%B8%AD%E0%B8%99%E0%B8%99%E0%B8%99%E0%B8%99.png',
-            'แมวนิลมังกร': 'https://raw.githubusercontent.com/naxxx9070/The-24-Game/refs/heads/main/%E0%B9%81%E0%B8%A1%E0%B8%A7.png',
+            'หนอน หน๊อนนน หนอนนนนนนนน': 'https://raw.githubusercontent.com/naxxx9070/The-24-Game/main/%E0%B8%AB%E0%B8%99%E0%B8%AD%E0%B8%99.jpg',
+            'แมวนิลมังกร': 'https://raw.githubusercontent.com/naxxx9070/The-24-Game/main/%E0%B9%81%E0%B8%A1%E0%B8%A7.png',
         };
 
         // ตัวแปรสำหรับสถานะของเกม
@@ -269,6 +285,11 @@
             { name: 'แมวนิลมังกร', score: 0 },
         ];
         
+        // ตัวแปรสำหรับพลุ
+        let fireworks = [];
+        let particles = [];
+        let animationFrameId;
+
         // ฟังก์ชันเปลี่ยนหน้าจอ
         function showScreen(screenId) {
             document.querySelectorAll('.screen').forEach(screen => {
@@ -294,6 +315,11 @@
 
         // ฟังก์ชันรีสตาร์ทเกม
         function restartGame() {
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+                fireworks = [];
+                particles = [];
+            }
             showScreen('start-screen');
         }
 
@@ -354,18 +380,29 @@
         function endGame() {
             showScreen('end-screen');
             const sortedTeams = [...teams].sort((a, b) => b.score - a.score);
-            const winner = sortedTeams[0];
+            const winningScore = sortedTeams[0].score;
+            const winners = sortedTeams.filter(team => team.score === winningScore);
             
-            let winnerText = `ทีมชนะคือ: ${winner.name} ด้วยคะแนน ${winner.score} แต้ม!`;
-            let winnerLogoSrc = teamLogos[winner.name];
+            const winnerDisplay = document.getElementById('winner-display');
+            const winnerLogosContainer = document.getElementById('winner-logos');
             
-            if (sortedTeams.length > 1 && sortedTeams[0].score === sortedTeams[1].score) {
-                 winnerText = `เสมอกัน! ${winner.name} และ ${sortedTeams[1].name} ได้คะแนนสูงสุด`;
-                 winnerLogoSrc = ''; // ไม่มีโลโก้ถ้าเสมอ
+            winnerDisplay.textContent = '';
+            winnerLogosContainer.innerHTML = '';
+            
+            if (winners.length > 1) {
+                 winnerDisplay.textContent = `เสมอกัน! ทีมที่ได้คะแนนสูงสุดคือ:`;
+            } else {
+                 winnerDisplay.textContent = `ทีมชนะคือ: ${winners[0].name} ด้วยคะแนน ${winningScore} แต้ม!`;
             }
             
-            document.getElementById('winner-display').textContent = winnerText;
-            document.getElementById('winner-logo').src = winnerLogoSrc;
+            // Display winner logos
+            winners.forEach(winner => {
+                const img = document.createElement('img');
+                img.src = teamLogos[winner.name];
+                img.alt = `${winner.name} Logo`;
+                img.className = 'w-24 h-24 rounded-full shadow-lg border-4 border-yellow-500 mx-2';
+                winnerLogosContainer.appendChild(img);
+            });
             
             const finalScoresHtml = sortedTeams.map((team, index) => `
                 <div class="flex justify-between items-center mb-1 text-gray-400">
@@ -374,6 +411,9 @@
                 </div>
             `).join('');
             document.getElementById('final-scores').innerHTML = finalScoresHtml;
+
+            // Start the fireworks animation
+            drawFireworks();
         }
 
         // ฟังก์ชันสุ่มเลขและแสดงผล
@@ -485,6 +525,131 @@
                     document.body.removeChild(messageDiv);
                 }
             }, 3000);
+        }
+
+        // ---------- ส่วนการทำงานของพลุ ----------
+        const canvas = document.getElementById('fireworks-canvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+
+        function random(min, max) {
+            return Math.random() * (max - min) + min;
+        }
+
+        // อนุภาคของพลุ
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.color = color;
+                this.velocity = {
+                    x: random(-2, 2),
+                    y: random(-2, 2)
+                };
+                this.alpha = 1;
+                this.friction = 0.99;
+                this.gravity = 0.05;
+                this.radius = 2;
+            }
+
+            update() {
+                this.velocity.x *= this.friction;
+                this.velocity.y *= this.friction;
+                this.velocity.y += this.gravity;
+                this.x += this.velocity.x;
+                this.y += this.velocity.y;
+                this.alpha -= 0.01;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+                ctx.fillStyle = `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, ${this.alpha})`;
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        // พลุ
+        class Firework {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.color = color;
+                this.particles = [];
+                this.isExploded = false;
+                this.createParticles();
+            }
+
+            createParticles() {
+                const count = 100;
+                for (let i = 0; i < count; i++) {
+                    this.particles.push(new Particle(this.x, this.y, this.color));
+                }
+            }
+            
+            update() {
+                if (!this.isExploded) {
+                    this.isExploded = true;
+                    this.particles.forEach(p => p.update());
+                    this.particles = this.particles.filter(p => p.alpha > 0);
+                }
+            }
+
+            draw() {
+                if (this.isExploded) {
+                    this.particles.forEach(p => p.draw());
+                }
+            }
+        }
+
+        function drawFireworks() {
+            resizeCanvas();
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            let hue = 0;
+            const colors = [
+                { r: 255, g: 159, b: 243 }, { r: 255, g: 255, b: 180 }, 
+                { r: 158, g: 227, b: 255 }, { r: 147, g: 255, b: 171 },
+                { r: 255, g: 171, b: 171 }
+            ];
+
+            function createFirework() {
+                const x = random(canvas.width * 0.2, canvas.width * 0.8);
+                const y = random(canvas.height * 0.2, canvas.height * 0.5);
+                const color = colors[Math.floor(random(0, colors.length))];
+                fireworks.push(new Firework(x, y, color));
+            }
+
+            function animate() {
+                animationFrameId = requestAnimationFrame(animate);
+                ctx.fillStyle = 'rgba(31, 41, 55, 0.2)'; // Fading effect
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                fireworks.forEach((fw, index) => {
+                    fw.update();
+                    fw.draw();
+                });
+                
+                fireworks = fireworks.filter(fw => fw.particles.length > 0);
+            }
+
+            // Create new fireworks periodically
+            let fireworkInterval = setInterval(() => {
+                if (document.getElementById('end-screen').style.display === 'flex') {
+                    createFirework();
+                } else {
+                    clearInterval(fireworkInterval);
+                }
+            }, 1000);
+            
+            animate();
         }
 
         // เริ่มต้นการทำงานเมื่อหน้าเว็บโหลดเสร็จ
