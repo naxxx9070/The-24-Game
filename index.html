@@ -143,6 +143,23 @@
             margin-left: auto;
             font-size: 1.25rem; /* ลดขนาด font */
         }
+        /* Style for the 'End Game' button */
+        .end-game-button {
+            position: absolute;
+            bottom: 1rem;
+            left: 1rem;
+            z-index: 10; /* Make sure it's on top of other elements */
+        }
+        /* Flexbox container for buttons at the bottom-left */
+        .bottom-left-buttons {
+            position: absolute;
+            bottom: 1rem;
+            left: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            z-index: 10;
+        }
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen">
@@ -184,9 +201,6 @@
                         <button onclick="getSolution()" id="solve-button" disabled class="bg-gradient-to-r from-purple-500 to-purple-700 hover:from-purple-600 hover:to-purple-800 text-white font-bold py-2 px-5 rounded-lg transition-all transform hover:-translate-y-1 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
                             ✨ หาคำตอบ
                         </button>
-                        <button onclick="undoLastScore()" id="undo-button" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-5 rounded-lg transition-all transform hover:-translate-y-1 shadow-lg">
-                            ย้อนกลับ
-                        </button>
                     </div>
                     <div id="solution-display" class="text-2xl font-semibold mt-4 text-emerald-400 message-display"></div>
                 </div>
@@ -202,6 +216,16 @@
                 </div>
             </div>
         </div>
+    </div>
+    
+    <!-- ปุ่มย้อนกลับและจบเกม -->
+    <div class="bottom-left-buttons">
+        <button onclick="undoLastScore()" id="undo-button" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-5 rounded-lg transition-all transform hover:-translate-y-1 shadow-lg">
+            ย้อนกลับ
+        </button>
+        <button onclick="endGame()" id="end-game-button" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-5 rounded-lg transition-all transform hover:-translate-y-1 shadow-lg">
+            จบเกม
+        </button>
     </div>
 
     <!-- หน้าจอจบเกม -->
@@ -296,7 +320,6 @@
             });
             
             document.getElementById('round-info').textContent = `รอบที่ ${currentRound} / ${totalRounds}`;
-            document.getElementById('undo-button').style.display = canScore ? 'none' : 'inline-block';
         }
 
         // ฟังก์ชันเพิ่มคะแนน
@@ -355,7 +378,12 @@
 
         // ฟังก์ชันสุ่มเลขและแสดงผล
         function generateNumbers() {
-            currentRound++; // ย้ายการนับรอบมาที่นี่
+            // เพิ่มเงื่อนไขการนับรอบ: จะนับรอบเพิ่มก็ต่อเมื่อมีการทำคะแนนในรอบก่อนหน้า
+            // หรือเป็นครั้งแรกที่กดปุ่ม (currentRound === 0)
+            if (!canScore || currentRound === 0) {
+                currentRound++; 
+            }
+            
             if (currentRound > totalRounds) {
                 endGame();
                 return;
